@@ -32,12 +32,12 @@ bool SystemClass::Initialize()
 	InitializeWindows(screenWidth, screenHeight);
 
 	// Create and initialize the input object.  This object will be used to handle reading the keyboard input from the user.
-	m_Input = new InputClass;
+	m_Input = std::make_unique<InputClass>();
 
 	m_Input->Initialize();
 
 	// Create and initialize the application class object.  This object will handle rendering all the graphics for this application.
-	m_Application = new ApplicationClass;
+	m_Application = std::make_unique<ApplicationClass>();
 
 	result = m_Application->Initialize(screenWidth, screenHeight, m_hwnd);
 	if (!result)
@@ -54,14 +54,12 @@ void SystemClass::Shutdown()
 	if (m_Application)
 	{
 		m_Application->Shutdown();
-		delete m_Application;
 		m_Application = 0;
 	}
 
 	// Release the input object.
 	if (m_Input)
 	{
-		delete m_Input;
 		m_Input = 0;
 	}
 

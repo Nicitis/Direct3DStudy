@@ -13,6 +13,7 @@
 // INCLUDES //
 //////////////
 #include <windows.h>
+#include <memory>
 
 ///////////////////////
 // MY CLASS INCLUDES //
@@ -46,8 +47,8 @@ private:
 	HINSTANCE m_hinstance;
 	HWND m_hwnd;
 
-	InputClass* m_Input;
-	ApplicationClass* m_Application;	
+	std::unique_ptr<InputClass> m_Input;
+	std::unique_ptr<ApplicationClass> m_Application;	
 };
 
 /////////////////////////
