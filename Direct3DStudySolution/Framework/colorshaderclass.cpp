@@ -276,7 +276,7 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	viewMatrix = XMMatrixTranspose(viewMatrix);
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
-
+	
 	// 상수 버퍼를 쓸 수 있돌고 잠근다.
 	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
@@ -319,4 +319,3 @@ void ColorShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int inde
 
 	return;
 }
-

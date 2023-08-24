@@ -16,6 +16,9 @@
 // MY CLASS INCLUDES //
 ///////////////////////
 #include "d3dclass.h"
+#include "cameraclass.h"
+#include "modelclass.h"
+#include "colorshaderclass.h"
 
 
 /////////////
@@ -48,6 +51,9 @@ private:
 
 private:
 	std::unique_ptr<D3DClass> m_Direct3D;
+	std::unique_ptr<CameraClass> m_Camera;
+	std::unique_ptr<ModelClass> m_Model;
+	std::unique_ptr<ColorShaderClass> m_ColorShader;
 };
 
 #endif
