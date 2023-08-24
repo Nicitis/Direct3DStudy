@@ -396,3 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/Direct3DStudySolution/Framework/Video Card Info.txt
