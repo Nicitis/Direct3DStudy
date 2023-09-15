@@ -39,6 +39,12 @@
     <ClCompile Include="colorshaderclass.cpp">
       <Filter>소스 파일\System</Filter>
     </ClCompile>
+    <ClCompile Include="modelclass.cpp">
+      <Filter>소스 파일\System</Filter>
+    </ClCompile>
+    <ClCompile Include="cameraclass.cpp">
+      <Filter>소스 파일\System</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="systemclass.h">

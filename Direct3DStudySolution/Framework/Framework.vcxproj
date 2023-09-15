@@ -128,10 +128,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
+    <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="colorshaderclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
   </ItemGroup>
   <ItemGroup>

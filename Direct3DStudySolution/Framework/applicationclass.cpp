@@ -42,7 +42,8 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera = std::make_unique<CameraClass>();
 
 	// 카메라의 초기 위치를 설정한다.
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	//m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -15.0f);
 
 	// 모델 객체를 생성 및 초기화한다.
 	m_Model = std::make_unique<ModelClass>();
@@ -136,6 +137,22 @@ bool ApplicationClass::Render()
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
+	// 테스트: 월드 행렬을 회전시킨다.
+	static float t = 0.0f;
+	static ULONGLONG timeStart = 0;
+	ULONGLONG timeCur = GetTickCount64();
+	if (timeStart == 0)
+		timeStart = timeCur;
+	t = (timeCur - timeStart) / 1000.0f;
+	
+
+	XMMATRIX spin = XMMatrixRotationY(-t);
+	XMMATRIX translation = XMMatrixTranslation(3.0f, 0.0f, 0.0f);
+	XMFLOAT3 axis(-1.0f, 1.0f, -1.0f);
+	XMVECTOR vectorAxis = XMVector3Normalize(XMLoadFloat3(&axis));
+	XMMATRIX orbit = XMMatrixRotationAxis(vectorAxis, -1.0f * t);
+	worldMatrix = worldMatrix * spin * translation * orbit;
+
 	// 모델 정점 및 인덱스 버퍼를 그래픽스 파이프라인에 넣어 그릴 준비를 한다.
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
@@ -145,9 +162,6 @@ bool ApplicationClass::Render()
 	{
 		return false;
 	}
-
-	// 씬을 시작하기 위해 버퍼를 초기화한다.
-	// m_Direct3D->BeginScene(1.0f, 1.0f, 0.0f, 1.0f);
 
 	// 렌더링된 씬을 화면 상에 전달한다.
 	m_Direct3D->EndScene();

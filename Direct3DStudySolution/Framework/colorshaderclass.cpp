@@ -112,7 +112,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	}
 
 	// 픽셀 셰이더를 컴파일한다.
-	result = D3DCompileFromFile(psFilename, NULL, NULL, "ColorPixelShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+	result = D3DCompileFromFile(psFilename, NULL, NULL, "ColorPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 		&pixelShaderBuffer, &errorMessage);
 	if (FAILED(result))
 	{
@@ -162,7 +162,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	polygonLayout[1].InstanceDataStepRate = 0;
 
 	// 레이아웃의 요소 갯수를 가져온다.
-	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]); // _countof 매크로를 사용해도 된다
 
 	// 정점 입력 레이아웃을 생성한다.
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),

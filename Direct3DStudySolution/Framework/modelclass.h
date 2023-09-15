@@ -42,6 +42,9 @@ private:
 	void RenderBuffers(ID3D11DeviceContext*);
 
 private:
+	bool CreateBox(float, float, float, float, VertexType**, unsigned long**);
+
+private:
 	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
 	int m_vertexCount, m_indexCount;
 };
