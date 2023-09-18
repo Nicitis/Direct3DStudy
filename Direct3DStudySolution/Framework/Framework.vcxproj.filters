@@ -74,4 +74,9 @@
       <Filter>소스 파일\Engine</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Engine\color.hlsl">
+      <Filter>소스 파일\Engine</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

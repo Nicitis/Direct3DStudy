@@ -11,6 +11,8 @@ ApplicationClass::ApplicationClass()
 	m_Camera = 0;
 	m_Model = 0;
 	m_ColorShader = 0;
+
+	m_startTime = 0ULL;
 }
 
 
@@ -65,6 +67,9 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// 시작 시간을 측정한다.
+	m_startTime = GetTickCount64();
+
 	// 과제: 텍스트 파일에 그래픽 카드 쓰기
 	//WriteVideoCardToFile("Video Card Info.txt");
 
@@ -105,9 +110,12 @@ void ApplicationClass::Shutdown()
 }
 
 
+// 매 프레임 실행하는 함수
 bool ApplicationClass::Frame()
 {
 	bool result;
+
+	m_time = (GetTickCount64() - m_startTime); // 시간 측정
 
 	// 그래픽스 씬을 렌더링한다.
 	result = Render();
@@ -138,17 +146,12 @@ bool ApplicationClass::Render()
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
 	// 테스트: 월드 행렬을 회전시킨다.
-	static float t = 0.0f;
-	static ULONGLONG timeStart = 0;
-	ULONGLONG timeCur = GetTickCount64();
-	if (timeStart == 0)
-		timeStart = timeCur;
-	t = (timeCur - timeStart) / 1000.0f;
-	
+	float t = GetSecondsFromStart();
+	printf("%f", t);
 
 	XMMATRIX spin = XMMatrixRotationY(-t);
-	XMMATRIX translation = XMMatrixTranslation(3.0f, 0.0f, 0.0f);
-	XMFLOAT3 axis(-1.0f, 1.0f, -1.0f);
+	XMMATRIX translation = XMMatrixTranslation(1.0f, 0.0f, 0.0f);
+	XMFLOAT3 axis = XMFLOAT3(-1.0f, 1.0f, -1.0f);
 	XMVECTOR vectorAxis = XMVector3Normalize(XMLoadFloat3(&axis));
 	XMMATRIX orbit = XMMatrixRotationAxis(vectorAxis, -1.0f * t);
 	worldMatrix = worldMatrix * spin * translation * orbit;
@@ -157,7 +160,8 @@ bool ApplicationClass::Render()
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
 	// 컬러 셰이더를 사용해 모델을 렌더링한다.
-	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), 
+		worldMatrix, viewMatrix, projectionMatrix, t);
 	if (!result)
 	{
 		return false;
@@ -171,20 +175,25 @@ bool ApplicationClass::Render()
 
 
 // 튜토리얼 3 과제 4: 그래픽 카드의 이름과 메모리를 파일에 출력한다.
-//bool ApplicationClass::WriteVideoCardToFile(const char* fileName)
-//{
-//	FILE* fp;
-//	errno_t result = fopen_s(&fp, fileName, "w");
-//	if (result != 0)
-//	{
-//		return false;
-//	}
-//	char videoCardName[128];
-//	int memory;
-//	m_Direct3D->GetVideoCardInfo(videoCardName, memory);
-//	
-//	fprintf(fp, "Video card information\nvideo card name: %s\ndedicated card memory: %d MB",
-//		videoCardName, memory);
-//	
-//	return true;
-//}
+bool ApplicationClass::WriteVideoCardToFile(const char* fileName)
+{
+	FILE* fp;
+	errno_t result = fopen_s(&fp, fileName, "w");
+	if (result != 0)
+	{
+		return false;
+	}
+	char videoCardName[128];
+	int memory;
+	m_Direct3D->GetVideoCardInfo(videoCardName, memory);
+	
+	fprintf(fp, "Video card information\nvideo card name: %s\ndedicated card memory: %d MB",
+		videoCardName, memory);
+	
+	return true;
+}
+
+float ApplicationClass::GetSecondsFromStart()
+{
+	return m_time / 1000.0f;
+}

@@ -5,10 +5,11 @@
 
 ColorShaderClass::ColorShaderClass()
 {
-	m_vertexShader = 0;
-	m_pixelShader = 0;
-	m_layout = 0;
-	m_matrixBuffer = 0;
+	m_vertexShader = nullptr;
+	m_pixelShader = nullptr;
+	m_layout = nullptr;
+	m_matrixBuffer = nullptr;
+	m_everyFrameChangedBuffer = nullptr;
 }
 
 ColorShaderClass::ColorShaderClass(const ColorShaderClass& other)
@@ -27,15 +28,16 @@ bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	int error;
 
 	// 정점 셰이더의 파일 이름을 설정한다.
-	error = wcscpy_s(vsFilename, 128, L"../Engine/color.vs");
+	error = wcscpy_s(vsFilename, 128, L"../Engine/color.hlsl");
+	//error = wcscpy_s(vsFilename, 128, L"../Engine/color.vs");
 	if (error != 0)
 	{
 		return false;
 	}
 
 	// 픽셀 셰이더의 파일 이름을 설정한다.
-	// 여기서 잘 동작하는지 확인해야 한다. Engine 폴더로 먼저 옮기자.
-	error = wcscpy_s(psFilename, 128, L"../Engine/color.ps");
+	error = wcscpy_s(psFilename, 128, L"../Engine/color.hlsl");
+	//error = wcscpy_s(psFilename, 128, L"../Engine/color.ps");
 	if (error != 0)
 	{
 		return false;
@@ -59,13 +61,14 @@ void ColorShaderClass::Shutdown()
 	return;
 }
 
-bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
+bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, 
+		XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, float t)
 {
 	bool result;
 
 
 	// 렌더링에 필요한 셰이더의 인자를 설정한다.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, t);
 	if (!result)
 	{
 		return false;
@@ -85,8 +88,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	ID3D10Blob* pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
-
+	D3D11_BUFFER_DESC matrixBufferDesc, everyFrameChangedBufferDesc;
 
 	// 해당 함수에서 사용할 포인터를 null로 초기화한다.
 	errorMessage = 0;
@@ -194,6 +196,20 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 		return false;
 	}
 
+	// 매 프레임 변경되는 데이터에 대한 상수 버퍼의 description을 작성한다.
+	everyFrameChangedBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	everyFrameChangedBufferDesc.ByteWidth = sizeof(EveryFrameChangedType);
+	everyFrameChangedBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	everyFrameChangedBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	everyFrameChangedBufferDesc.MiscFlags = 0;
+	everyFrameChangedBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&everyFrameChangedBufferDesc, nullptr, &m_everyFrameChangedBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -205,6 +221,11 @@ void ColorShaderClass::ShutdownShader()
 	{
 		m_matrixBuffer->Release();
 		m_matrixBuffer = 0;
+	}
+	if (m_everyFrameChangedBuffer)
+	{
+		m_everyFrameChangedBuffer->Release();
+		m_everyFrameChangedBuffer = 0;
 	}
 	// 레이아웃을 해제한다.
 	if (m_layout)
@@ -265,41 +286,46 @@ void ColorShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 
 
 bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
-	XMMATRIX projectionMatrix)
+	XMMATRIX projectionMatrix, float t)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
-	unsigned int bufferNumber;
+	EveryFrameChangedType* everyFrameChangedDataPtr;
 
 	// 셰이더에 전달할 수 있게 행렬을 전치시킨다
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	viewMatrix = XMMatrixTranspose(viewMatrix);
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
 	
-	// 상수 버퍼를 쓸 수 있돌고 잠근다.
-	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	// 행렬 상수 버퍼에 행렬을 복사한다.
+	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource); // 상수 버퍼를 쓸 수 있도록 잠근다.
 	if (FAILED(result))
-	{
 		return false;
-	}
 
-	// 상수 버퍼에서 데이터에 대한 포인터를 획득한다.
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
+	dataPtr = (MatrixBufferType*)mappedResource.pData; // 상수 버퍼에서 데이터에 대한 포인터를 획득한다.
 
-	// 상수 버퍼로부터 행렬을 복사한다.
 	dataPtr->world = worldMatrix;
 	dataPtr->view = viewMatrix;
 	dataPtr->projection = projectionMatrix;
+	//dataPtr->time = t;
 
-	// 상수 버퍼의 잠금을 해제한다.
-	deviceContext->Unmap(m_matrixBuffer, 0);
+	deviceContext->Unmap(m_matrixBuffer, 0); // 상수 버퍼의 잠금을 해제한다.
 
-	// 정점 셰이더에 상수 버퍼의 위치를 설정한다.
-	bufferNumber = 0;
+	// 매 프레임 변경되는 상수 버퍼의 값을 갱신한다.
+	result = deviceContext->Map(m_everyFrameChangedBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource); // 상수 버퍼를 쓸 수 있도록 잠근다.
+	if (FAILED(result))
+		return false;
 
-	// 마지막으로 정점 셰이더에 상수 버퍼의 값을 갱신된 값으로 설정한다.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+	everyFrameChangedDataPtr = (EveryFrameChangedType*)mappedResource.pData;
+	everyFrameChangedDataPtr->time = t;
+
+	deviceContext->Unmap(m_everyFrameChangedBuffer, 0); // 상수 버퍼의 잠금을 해제한다.
+
+	// 마지막으로 셰이더에 상수 버퍼의 값을 갱신된 값으로 설정한다.
+	deviceContext->VSSetConstantBuffers(0, 1, &m_matrixBuffer);
+	deviceContext->VSSetConstantBuffers(1, 1, &m_everyFrameChangedBuffer);
+	deviceContext->PSSetConstantBuffers(1, 1, &m_everyFrameChangedBuffer);
 
 	return true;
 }

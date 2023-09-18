@@ -43,6 +43,7 @@ public:
 	void Shutdown();
 	bool Frame();
 
+	float GetSecondsFromStart();
 	bool WriteVideoCardToFile(const char*);
 
 private:
@@ -53,6 +54,10 @@ private:
 	std::unique_ptr<CameraClass> m_Camera;
 	std::unique_ptr<ModelClass> m_Model;
 	std::unique_ptr<ColorShaderClass> m_ColorShader;
+
+private:
+	ULONGLONG m_startTime;
+	ULONGLONG m_time;
 };
 
 #endif

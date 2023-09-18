@@ -125,6 +125,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderType>Vertex</ShaderType>
+      <EntryPointName>ColorVertexShader</EntryPointName>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp" />
@@ -147,6 +151,9 @@
   <ItemGroup>
     <None Include="..\Engine\color.ps" />
     <None Include="..\Engine\color.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Engine\color.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
