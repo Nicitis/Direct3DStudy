@@ -28,7 +28,7 @@ bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	int error;
 
 	// 정점 셰이더의 파일 이름을 설정한다.
-	error = wcscpy_s(vsFilename, 128, L"../Engine/color.hlsl");
+	error = wcscpy_s(vsFilename, 128, L"Engine/color.hlsl");
 	//error = wcscpy_s(vsFilename, 128, L"../Engine/color.vs");
 	if (error != 0)
 	{
@@ -36,7 +36,7 @@ bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	}
 
 	// 픽셀 셰이더의 파일 이름을 설정한다.
-	error = wcscpy_s(psFilename, 128, L"../Engine/color.hlsl");
+	error = wcscpy_s(psFilename, 128, L"Engine/color.hlsl");
 	//error = wcscpy_s(psFilename, 128, L"../Engine/color.ps");
 	if (error != 0)
 	{
